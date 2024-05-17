@@ -31,4 +31,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push https://maxhuber:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/maxhuber/deepsquid main
+        run: git push https://maxhuber:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/maxhuber/deepsquid main -f
