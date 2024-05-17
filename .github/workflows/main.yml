@@ -12,22 +12,14 @@ on:
 jobs:
   check-file-size:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          lfs: true
-
       - name: Check large files
-        id: check_large_files
         uses: ActionsDesk/lfs-warning@v2.0
         with:
           filesizelimit: 10485760 # 10MB
 
   sync-to-hub:
     needs: check-file-size
-    if: steps.check_large_files.outputs.filesizelimit == '0'
     runs-on: ubuntu-latest
 
     steps:
