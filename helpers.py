@@ -9,40 +9,47 @@ import pickle
 
 
 def load_video_from_url(youtube_url):
-    # DOWNLOAD THE VIDEO USING THE GIVEN URL
-    yt = YouTube(youtube_url)
-    yt_stream = yt.streams.filter(file_extension='mp4').first()
-    title = yt_stream.title
-    src = yt_stream.download()
-    capture = cv2.VideoCapture(src)
+    visible = True
+    try:
+        # DOWNLOAD THE VIDEO USING THE GIVEN URL
+        yt = YouTube(youtube_url)
+        yt_stream = yt.streams.filter(file_extension='mp4').first()
+        title = yt_stream.title
+        src = yt_stream.download()
+        capture = cv2.VideoCapture(src)
 
-    # SAMPLE FRAMES FROM VIDEO FILE
-    sampled_frames = sample_frames_from_video_file(capture)
+        # SAMPLE FRAMES FROM VIDEO FILE
+        sampled_frames = sample_frames_from_video_file(capture)
 
-    # PICK EXAMPLE FRAME FROM THE MIDDLE OF THE SAMPLED FRAMES
-    example_frames = [
-        sampled_frames[len(sampled_frames) // 4],
-        sampled_frames[len(sampled_frames) // 2],
-        sampled_frames[3 * len(sampled_frames) // 4],
-    ]
+        # PICK EXAMPLE FRAME FROM THE MIDDLE OF THE SAMPLED FRAMES
+        example_frames = [
+            sampled_frames[len(sampled_frames) // 4],
+            sampled_frames[len(sampled_frames) // 2],
+            sampled_frames[3 * len(sampled_frames) // 4],
+        ]
 
-    # DELETE VIDEO FILE
-    if os.path.exists(src):
-        os.remove(src)
+        # DELETE VIDEO FILE
+        if os.path.exists(src):
+            os.remove(src)
 
-    # CONVERT SAMPLED FRAMES TO TENSOR
-    frames_tensor = tf.expand_dims(tf.convert_to_tensor(sampled_frames, dtype=tf.float32), axis=0)
+        # CONVERT SAMPLED FRAMES TO TENSOR
+        frames_tensor = tf.expand_dims(tf.convert_to_tensor(sampled_frames, dtype=tf.float32), axis=0)
 
-    # SAVE TENSOR TO FILE
-    pickle.dump(frames_tensor, open("frames_tf.pkl", "wb"))
+        # SAVE TENSOR TO FILE
+        pickle.dump(frames_tensor, open("frames_tf.pkl", "wb"))
+
+    except Exception as e:
+        title = "Error while loading video: " + str(e)
+        visible = False
+        example_frames = [np.zeros((256, 256, 3)) for _ in range(3)]
 
     # Define visible prediction components to show upon video loaded
-    predVideoBtn = gr.Button(value="Classify Video", visible=True)
+    predVideoBtn = gr.Button(value="Classify Video", visible=visible)
 
     predOutput = gr.Label(
         label="DETECTED LABEL (AND CONFIDENCE LEVEL)",
         num_top_classes=2,
-        visible=True
+        visible=visible
     )
 
     return title, example_frames, predVideoBtn, predOutput
@@ -66,8 +73,11 @@ def detect_deepfake():
     fake_confidence = 1 - real_confidence
     confidence_dict = {"FAKE": fake_confidence, "REAL": real_confidence}
 
+    # MAKE FLAG BUTTON VISIBLE
+    flagBtn = gr.Button(value="Flag Output", visible=True)
+
     # RETURN THE OUTPUT LABEL AND EXAMPLE FRAMES
-    return confidence_dict
+    return confidence_dict, flagBtn
 
 
 def sample_frames_from_video_file(capture, sample_count=10, frames_per_sample=10, frame_step=10,

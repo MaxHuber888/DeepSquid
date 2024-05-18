@@ -10,6 +10,8 @@ theme = gr.themes.Default(
     font=[gr.themes.GoogleFont("IBM Plex Mono"), "system-ui"]
 )
 
+callback = gr.CSVLogger()
+
 with gr.Blocks(theme=theme) as demo:
     # DEFINE COMPONENTS
 
@@ -49,11 +51,20 @@ with gr.Blocks(theme=theme) as demo:
         visible=False
     )
 
+    # Button for flagging the output
+    flagBtn = gr.Button(value="Flag Output", visible=False)
+
     # DEFINE FUNCTIONS
     # Load video from URL, display sample frames, and enable prediction button
     loadVideoBtn.click(fn=load_video_from_url, inputs=[urlInput], outputs=[videoTitle, sampleFrames, predVideoBtn, predOutput])
 
     # Generate video prediction
-    predVideoBtn.click(fn=detect_deepfake, outputs=[predOutput])
+    predVideoBtn.click(fn=detect_deepfake, outputs=[predOutput, flagBtn])
+
+    # Define flag callback
+    callback.setup([urlInput], "flagged_data_points")
+
+    # Flag output
+    flagBtn.click(fn=lambda *args: callback.flag(args), inputs=[urlInput], outputs=None)
 
 demo.launch()
