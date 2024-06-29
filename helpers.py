@@ -118,6 +118,7 @@ def sample_frames_from_video_file(capture, sample_count=10, frames_per_sample=10
 
 
 def format_frames(frame, output_size):
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = tf.image.convert_image_dtype(frame, tf.float32)
     frame = tf.image.resize_with_pad(frame, *output_size)
     return frame
