@@ -28,6 +28,9 @@ def load_video_from_url(youtube_url):
             sampled_frames[3 * len(sampled_frames) // 4],
         ]
 
+        # SWAP COLOR CHANNELS FOR EXAMPLE FRAMES
+        example_frames = swap_color_channels(example_frames)
+
         # DELETE VIDEO FILE
         if os.path.exists(src):
             os.remove(src)
@@ -117,8 +120,11 @@ def sample_frames_from_video_file(capture, sample_count=10, frames_per_sample=10
     return np.array(result)
 
 
+def swap_color_channels(frames):
+    return [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in frames]
+
+
 def format_frames(frame, output_size):
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     frame = tf.image.convert_image_dtype(frame, tf.float32)
     frame = tf.image.resize_with_pad(frame, *output_size)
     return frame
